@@ -20,7 +20,9 @@ private:
     int compareAbsValue(char[], char[]) const;
     char *addAbs(char[], char[]);
     char *subAbs(char[], char[]);
-
+    char *mulAbs(char[], char[]);
+    BigInt divAbsTo2(const BigInt &);
+    BigInt divAbs(char[], char[]);
 
 public:
     BigInt();
@@ -34,7 +36,7 @@ public:
     bool operator>=(const BigInt &);
     bool operator<=(const BigInt &);
 
-    BigInt operator=(const BigInt &);
+    BigInt &operator=(const BigInt &);
     BigInt operator-() const;
 
     BigInt operator+(const BigInt &);
@@ -43,8 +45,9 @@ public:
     BigInt operator/(const BigInt &);
     BigInt operator%(const BigInt &);
 
+    BigInt abs() const;
+
     friend istream &operator>>(istream &, BigInt &);
     friend ostream &operator<<(ostream &, const BigInt &);
 };
-
 #endif

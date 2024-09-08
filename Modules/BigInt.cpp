@@ -163,6 +163,7 @@ int BigInt::compareAbsValue(char val1[], char val2[]) const
             else if (ele1 < ele2)
             {
                 result = LESS;
+                break;
             }
         }
     }
@@ -219,7 +220,7 @@ bool BigInt::operator<=(const BigInt &term)
     return (*this < term) || (*this == term);
 }
 
-BigInt BigInt::operator=(const BigInt &term)
+BigInt &BigInt::operator=(const BigInt &term)
 {
     strncpy(value, term.value, MAX_SIZE - 1);
     return *this;
@@ -301,6 +302,144 @@ char *BigInt::subAbs(char val1[], char val2[])
 
     return diff;
 }
+char *BigInt::mulAbs(char val1[], char val2[])
+{
+    char *prod = new char[BigInt::MAX_SIZE]{'0', '\0'};
+    int startIndex = 0;
+
+    for (int index1 = strlen(val1) - 1; index1 >= 0; index1--)
+    {
+        char *subProd = new char[BigInt::MAX_SIZE];
+        subProd[BigInt::MAX_SIZE - 1] = '\0';
+
+        // add n zero after a loop
+        for (int i = 0; i < startIndex; i++)
+        {
+            subProd[i] = '0';
+        }
+
+        int subIndex = startIndex;
+        int ele1 = val1[index1] - '0';
+        int carry = 0;
+        int index2 = strlen(val2) - 1;
+
+        while (index2 >= 0 || carry > 0)
+        {
+            int ele2 = (index2 >= 0) ? val2[index2] - '0' : 0;
+            int temp = ele2 * ele1 + carry;
+
+            subProd[subIndex] = (temp % 10) + '0';
+            carry = temp / 10;
+
+            index2--;
+            subIndex++;
+        }
+        subProd[subIndex] = '\0';
+        reverseStr(subProd);
+        prod = addAbs(prod, subProd);
+
+        startIndex++;
+        delete[] subProd;
+    }
+
+    removePrefix(prod);
+    return prod;
+}
+
+BigInt BigInt::divAbsTo2(const BigInt &dividend)
+{
+    char *val = new char[BigInt::MAX_SIZE];
+    char *quotient = new char[BigInt::MAX_SIZE];
+
+    strncpy(val, dividend.value, BigInt::MAX_SIZE - 1);
+    quotient[BigInt::MAX_SIZE - 1] = '\0';
+
+    int valLength = strlen(val);
+    int carry = 0;
+    int quotientIndex = 0;
+
+    for (int index = 0; index < valLength; index++)
+    {
+        int ele = (val[index] - '0') + carry * 10;
+
+        if (ele < 2)
+        {
+            carry = ele;
+            quotient[quotientIndex] = '0';
+        }
+        else
+        {
+            int sub = 1;
+            for (sub; sub <= 10; sub++)
+            {
+                if (sub * 2 > ele)
+                {
+                    sub--;
+                    break;
+                }
+            }
+            quotient[quotientIndex] = sub + '0';
+            carry = ele - sub * 2;
+        }
+        quotientIndex++;
+    }
+
+    quotient[quotientIndex] = '\0';
+
+    BigInt result = quotient;
+
+    delete[] quotient;
+    delete[] val;
+
+    return result;
+}
+
+BigInt BigInt::divAbs(char val1[], char val2[])
+{
+    BigInt quotient;
+    BigInt remainder;
+
+    if (compareAbsValue(val2, ZERO) == EQUAL)
+    {
+        throw std::out_of_range("Divisor is 0.");
+    }
+    else if (compareAbsValue(val1, val2) != GREATER)
+    {
+        quotient = "0";
+    }
+    else
+    {
+        BigInt a = val1;
+        BigInt b = val2;
+
+        BigInt l = "1";
+        BigInt r = a;
+        BigInt epsilon = "1";
+
+        int test = 0;
+        bool stop = false;
+
+        do
+        {
+            quotient = divAbsTo2(r + l);
+            if ((quotient * b) > a)
+            {
+                r = quotient;
+            }
+            else
+            {
+                l = quotient;
+            }
+
+            if((r - l) == epsilon){
+                stop = true;
+                quotient = l;
+            }
+        } while (!stop);
+    }
+    return quotient;
+}
+
 BigInt BigInt::operator+(const BigInt &term)
 {
     BigInt sum;
@@ -335,6 +474,35 @@ BigInt BigInt::operator-(const BigInt &term)
 {
     return (*this + (-term));
 };
+BigInt BigInt::operator*(const BigInt &term)
+{
+    BigInt prod;
+    prod.sign = (sign == term.sign) ? true : false;
+    prod.value = mulAbs(value, term.value);
+    return prod;
+}
+BigInt BigInt::operator/(const BigInt &term)
+{
+    BigInt quot = divAbs(value, term.value);
+    quot.sign = (sign == term.sign) ? true : false;
+    return quot;
+}
+BigInt BigInt::operator%(const BigInt &term)
+{
+    BigInt quot = divAbs(value, term.value);
+    quot.sign = (sign == term.sign) ? true : false;
+
+    BigInt remainder = abs() - (quot.abs() * term.abs());
+    remainder.sign = sign;
+    return remainder;
+}
+
+BigInt BigInt::abs() const
+{
+    BigInt result = *this;
+    result.sign = true;
+    return result;
+}
 
 istream &operator>>(istream &is, BigInt &num)
 {
