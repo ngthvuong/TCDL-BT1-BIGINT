@@ -70,11 +70,39 @@ char *BigInt::filterValue(const char val[], function<int(int)> isValidSymbolOnBa
 }
 char *BigInt::convert16To10(const char val[])
 {
+    BigInt result = "0";
+    BigInt sixteen = "16";
+    int val16Length = strlen(val);
+
+    for (int i = val16Length - 1; i >= 0; i--)
+    {
+        int ele16 = val[i];
+        BigInt ele10;
+        if (ele16 >= '0' && ele16 <= '9')
+        {
+            ele10 = (BigInt)(ele16 - '0');
+        }
+        else if (ele16 >= 'a' && ele16 <= 'f')
+        {
+            ele10 = (BigInt)(10 + (ele16 - 'a'));
+        }
+        else if (ele16 >= 'A' && ele16 <= 'F')
+        {
+            ele10 = (BigInt)(10 + (ele16 - 'A'));
+        }
+
+        result = result + (ele10 * sixteen.power(val16Length - i - 1));
+    }
+    return result.value;
+}
+char *BigInt::convert10To16(const char val[])
+{
     const char *fixedValue = "12345";
     char *result = new char[BigInt::MAX_SIZE];
     strncpy(result, fixedValue, BigInt::MAX_SIZE - 1);
     return result;
 }
+
 void BigInt::setValue(const char val[])
 {
     char *abs = new char[BigInt::MAX_SIZE];
@@ -98,6 +126,7 @@ void BigInt::setValue(const char val[])
         char *abs_16 = new char[BigInt::MAX_SIZE];
         abs_16 = filterValue(abs + 1, [](int x)
                              { return isxdigit(x); });
+
         abs = convert16To10(abs_16);
         delete[] abs_16;
     }
@@ -131,6 +160,30 @@ BigInt::BigInt(const BigInt &term)
     inputValue[0] = (term.sign) ? '+' : '-';
     strncpy(inputValue + 1, term.value, BigInt::MAX_SIZE - 1);
     setValue(inputValue);
+}
+BigInt::BigInt(int term)
+{
+    init();
+    if (term < 0)
+    {
+        sign = false;
+        term = -term;
+    }
+    else
+    {
+        sign = true;
+    }
+    int index = 0;
+    int temp = term;
+    do
+    {
+        value[index] = (temp % 10) + '0';
+        temp /= 10;
+        index++;
+    } while (temp != 0);
+    value[index] = '\0';
+
+    reverseStr(value);
 }
 
 int BigInt::compareAbsValue(char val1[], char val2[]) const
@@ -268,7 +321,7 @@ char *BigInt::subAbs(char val1[], char val2[])
 {
     if (compareAbsValue(val1, val2) == LESS)
     {
-        throw std::out_of_range("Subtrahend greater than Minuend.");
+        throw out_of_range("Subtrahend greater than Minuend.");
     }
     char *diff = new char[BigInt::MAX_SIZE];
     diff[BigInt::MAX_SIZE - 1] = '\0';
@@ -397,11 +450,10 @@ BigInt BigInt::divAbsTo2(const BigInt &dividend)
 BigInt BigInt::divAbs(char val1[], char val2[])
 {
     BigInt quotient;
-    BigInt remainder;
 
     if (compareAbsValue(val2, ZERO) == EQUAL)
     {
-        throw std::out_of_range("Divisor is 0.");
+        throw out_of_range("Divisor is 0.");
     }
     else if (compareAbsValue(val1, val2) != GREATER)
     {
@@ -422,6 +474,7 @@ BigInt BigInt::divAbs(char val1[], char val2[])
         do
         {
             quotient = divAbsTo2(r + l);
+
             if ((quotient * b) > a)
             {
                 r = quotient;
@@ -431,9 +484,14 @@ BigInt BigInt::divAbs(char val1[], char val2[])
                 l = quotient;
             }
 
-            if((r - l) == epsilon){
-                stop = true;
+            if ((r - l) == epsilon)
+            {
                 quotient = l;
+                if (r * b == a)
+                {
+                    quotient = r;
+                }
+                stop = true;
             }
         } while (!stop);
     }
@@ -501,6 +559,101 @@ BigInt BigInt::abs() const
 {
     BigInt result = *this;
     result.sign = true;
+    return result;
+}
+BigInt BigInt::power(int n) const
+{
+    BigInt result = "1";
+    for (int i = 0; i < n; i++)
+    {
+        result = result * (*this);
+    }
+    return result;
+}
+char *BigInt::hex()
+{
+    char *result = new char[BigInt::MAX_SIZE]{'0', '\0'};
+    result[BigInt::MAX_SIZE - 1] = '\0';
+
+    char *absValue = new char[BigInt::MAX_SIZE]{'0', '\0'};
+    BigInt temp = abs();
+    int remainder = 0;
+    BigInt sixteen = "16";
+    int index = 0;
+    do
+    {
+        remainder = (int)(temp % sixteen);
+        temp = temp / sixteen;
+        if (remainder < 10)
+        {
+            absValue[index] = remainder + '0';
+        }
+        else if (remainder < 16)
+        {
+            absValue[index] = remainder + 'a' - 10;
+        }
+        index++;
+    } while (temp > (BigInt)0);
+
+    absValue[index] = '\0';
+    reverseStr(absValue);
+
+    index = 0;
+    if (!sign)
+    {
+        result[index] = '-';
+        index++;
+    }
+
+    result[index] = 'x';
+    index++;
+
+    strncpy(result + index, absValue, BigInt::MAX_SIZE - index - 1);
+
+    return result;
+}
+BigInt BigInt::root(int n)
+{
+
+    if (n % 2 == 0 && sign == false)
+    {
+        throw out_of_range("The term must not be a negative value.");
+    }
+
+    BigInt b = abs();
+    BigInt x = 1;
+
+    for (int i = 0; i <= 200; i++)
+    {
+        BigInt stopValue = x;
+
+        BigInt Bt1 = (BigInt)(n - 1) * x;
+        BigInt Bt2 = b / (x.power(n - 1));
+        x = (Bt1 + Bt2) / ((BigInt)n);
+
+        if(x == stopValue){
+            break;
+        }
+    }
+
+    x.sign = sign;
+    return x;
+}
+
+BigInt::operator int() const
+{
+    int result = 0;
+    int length = strlen(value);
+    for (int i = 0; i < length; i++)
+    {
+        int ele = value[i] - '0';
+        result = (result * 10) + ele;
+    }
+
+    if (!sign)
+    {
+        result = -result;
+    }
     return result;
 }
 

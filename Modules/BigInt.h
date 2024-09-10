@@ -16,6 +16,7 @@ private:
     void init();
     void setValue(const char[]);
     char *convert16To10(const char[]);
+    char *convert10To16(const char[]);
     char *filterValue(const char[], function<int(int)>);
     int compareAbsValue(char[], char[]) const;
     char *addAbs(char[], char[]);
@@ -27,7 +28,8 @@ private:
 public:
     BigInt();
     BigInt(const char[]);
-    BigInt(const BigInt &term);
+    BigInt(const BigInt &);
+    BigInt(int);
 
     bool operator==(const BigInt &);
     bool operator!=(const BigInt &);
@@ -46,6 +48,11 @@ public:
     BigInt operator%(const BigInt &);
 
     BigInt abs() const;
+    BigInt power(int) const;
+    char * hex();
+    BigInt root(int);
+
+    operator int() const;
 
     friend istream &operator>>(istream &, BigInt &);
     friend ostream &operator<<(ostream &, const BigInt &);
