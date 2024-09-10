@@ -77,7 +77,7 @@ tri tuyet doi, luy thua voi so mu nguyen khong am"
     cout << "num10 * num11: \t" << (num10 * num11) << endl;
     cout << "num10 / num11: \t" << (num10 / num11) << endl;
     cout << "num10 % num11: \t" << (num10 % num11) << endl;
-    cout << "abs(num10): " << num10.abs() << endl;
+    cout << "abs(num10): \t" << num10.abs() << endl;
     cout << "num10 ^ 2: \t" << (num10.power(2)) << endl;
     cout << "num10 ^ 3: \t" << (num10.power(3)) << endl;
 
@@ -103,7 +103,7 @@ tri tuyet doi, luy thua voi so mu nguyen khong am"
 
     cout << "=================================================================================" << endl;
     // Yêu cầu 1.5: Phép toán lấy phần nguyên của căn bậc 2, bậc 3.
-    cout << "Yeu Cau 1.5: Phép toan lay phan nguyen cua can bac 2, bac 3." << endl;
+    cout << "Yeu Cau 1.5: Phep toan lay phan nguyen cua can bac 2, bac 3." << endl;
 
     BigInt num14;
     cout << "num14 = ";
