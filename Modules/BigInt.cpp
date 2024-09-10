@@ -127,6 +127,7 @@ void BigInt::setValue(const char val[])
         abs_16 = filterValue(abs + 1, [](int x)
                              { return isxdigit(x); });
 
+        delete[] abs;
         abs = convert16To10(abs_16);
         delete[] abs_16;
     }
@@ -156,10 +157,8 @@ BigInt::BigInt(const char val[])
 BigInt::BigInt(const BigInt &term)
 {
     init();
-    char *inputValue = new char[BigInt::MAX_SIZE + 1];
-    inputValue[0] = (term.sign) ? '+' : '-';
-    strncpy(inputValue + 1, term.value, BigInt::MAX_SIZE - 1);
-    setValue(inputValue);
+    sign = term.sign;
+    value = strncpy(value, term.value, BigInt::MAX_SIZE - 1);
 }
 BigInt::BigInt(int term)
 {
@@ -275,7 +274,12 @@ bool BigInt::operator<=(const BigInt &term)
 
 BigInt &BigInt::operator=(const BigInt &term)
 {
-    strncpy(value, term.value, MAX_SIZE - 1);
+    if (this != &term)
+    {
+        sign = term.sign;
+        strncpy(value, term.value, MAX_SIZE - 1);
+        value[MAX_SIZE - 1] = '\0';
+    }
     return *this;
 }
 BigInt BigInt::operator-() const
@@ -631,7 +635,8 @@ BigInt BigInt::root(int n)
         BigInt Bt2 = b / (x.power(n - 1));
         x = (Bt1 + Bt2) / ((BigInt)n);
 
-        if(x == stopValue){
+        if (x == stopValue)
+        {
             break;
         }
     }
@@ -667,7 +672,7 @@ istream &operator>>(istream &is, BigInt &num)
 
 ostream &operator<<(ostream &os, const BigInt &num)
 {
-    if (num.sign == 0)
+    if (!num.sign)
     {
         os << "-";
     }
