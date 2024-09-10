@@ -459,7 +459,7 @@ BigInt BigInt::divAbs(char val1[], char val2[])
     {
         throw out_of_range("Divisor is 0.");
     }
-    else if (compareAbsValue(val1, val2) != GREATER)
+    else if (compareAbsValue(val1, val2) == LESS)
     {
         quotient = "0";
     }
@@ -546,7 +546,12 @@ BigInt BigInt::operator*(const BigInt &term)
 BigInt BigInt::operator/(const BigInt &term)
 {
     BigInt quot = divAbs(value, term.value);
-    quot.sign = (sign == term.sign) ? true : false;
+
+    quot.sign = true;
+    if (quot != (BigInt)0)
+    {
+        quot.sign = (sign == term.sign) ? true : false;
+    }
     return quot;
 }
 BigInt BigInt::operator%(const BigInt &term)
@@ -555,7 +560,12 @@ BigInt BigInt::operator%(const BigInt &term)
     quot.sign = (sign == term.sign) ? true : false;
 
     BigInt remainder = abs() - (quot.abs() * term.abs());
-    remainder.sign = sign;
+
+    remainder.sign = true;
+    if (remainder != (BigInt)0)
+    {
+        remainder.sign = sign;
+    }
     return remainder;
 }
 
